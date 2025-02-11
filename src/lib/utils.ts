@@ -2,7 +2,7 @@ import fs from "fs";
 import * as types from "../types/tvdb.js";
 import { db } from "../db/db.js";
 import { media, mediaGenre, remoteId } from "../db/schema.js";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 export function createDir(path: string) {
   if (!fs.existsSync(path)) {
@@ -238,7 +238,9 @@ export const upsert = async ({
         .where(
           and(
             and(eq(media.title, title), eq(media.category, category)),
-            eq(media.releaseDate, releaseDate)
+            releaseDate !== null
+              ? eq(media.releaseDate, releaseDate)
+              : isNull(media.releaseDate)
           )
         );
 
