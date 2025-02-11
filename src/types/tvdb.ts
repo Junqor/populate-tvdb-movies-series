@@ -397,6 +397,7 @@ export namespace TVDB {
         awards: any;
         tagOptions: TagOption[];
         lists: List[];
+        translations: Translations;
         contentRatings: ContentRating[];
         companies: Companies;
         production_countries: ProductionCountry[];
@@ -511,6 +512,26 @@ export namespace TVDB {
       export interface Alias2 {
         language: string;
         name: string;
+      }
+
+      export interface Translations {
+        nameTranslations: NameTranslation[] | null;
+        overviewTranslations: OverviewTranslation[] | null;
+        aliases: string[];
+      }
+
+      export interface NameTranslation {
+        name: string;
+        language: string;
+        tagline?: string;
+        isPrimary?: boolean;
+      }
+
+      export interface OverviewTranslation {
+        overview: string;
+        tagline?: string;
+        language: string;
+        isPrimary?: boolean;
       }
 
       export interface ContentRating {
