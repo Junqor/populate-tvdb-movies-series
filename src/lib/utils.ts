@@ -28,7 +28,7 @@ const getSeriesData = (series: types.TVDB.Series.Extended.Data) => {
   }
 
   // Look for english translation
-  let title = "";
+  let title = null;
   const nameTranslations = series.translations.nameTranslations;
   if (nameTranslations) {
     const nameTranslation = nameTranslations.find(
@@ -36,6 +36,8 @@ const getSeriesData = (series: types.TVDB.Series.Extended.Data) => {
     );
     if (nameTranslation) {
       title = nameTranslation.name;
+    } else {
+      title = series.name;
     }
   } else {
     // Default to primary name
@@ -104,7 +106,7 @@ const getMovieData = (movie: types.TVDB.Movies.Extended.Data) => {
   }
 
   // Look for english translation
-  let title = "";
+  let title = null;
   const nameTranslations = movie.translations.nameTranslations;
   if (nameTranslations) {
     const nameTranslation = nameTranslations.find(
@@ -112,6 +114,8 @@ const getMovieData = (movie: types.TVDB.Movies.Extended.Data) => {
     );
     if (nameTranslation) {
       title = nameTranslation.name;
+    } else {
+      title = movie.name;
     }
   } else {
     // Default to primary name
