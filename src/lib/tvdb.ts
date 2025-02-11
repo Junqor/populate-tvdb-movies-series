@@ -23,12 +23,20 @@ export class TVDB {
       meta: types.TVDB.Params.Meta.translations,
     });
 
+    let progress = 0;
+    // Get extended info for each series
     const extendedSeries = await pSettle(
       baseSeries.slice(0, limit).map(async (series) => {
         const result = await this._get<types.TVDB.Series.Extended.Root>(
           `series/${series.id}/extended`,
           searchParams
         );
+        progress++;
+        if (progress % 100 === 0) {
+          console.log(
+            `Progress: ${progress}/${Math.min(limit, baseSeries.length)}`
+          );
+        }
         return result.data;
       })
     );
@@ -59,6 +67,58 @@ export class TVDB {
     } while (series.length < limit);
 
     return series;
+  }
+
+  public async getMovies(filters: Record<string, string>, limit: number) {
+    // Get base movies
+    const baseMovies = await this.getBaseMovies(filters, limit);
+    const searchParams = new URLSearchParams({
+      meta: types.TVDB.Params.Meta.translations,
+    });
+
+    let progress = 0;
+    // Get extended info for each movie
+    const extendedSeries = await pSettle(
+      baseMovies.slice(0, limit).map(async (movie) => {
+        const result = await this._get<types.TVDB.Series.Extended.Root>(
+          `movies/${movie.id}/extended`,
+          searchParams
+        );
+        progress++;
+        if (progress % 100 === 0) {
+          console.log(
+            `Progress: ${progress}/${Math.min(limit, baseMovies.length)}`
+          );
+        }
+        return result.data;
+      })
+    );
+
+    const resolvedSeries = extendedSeries
+      .filter((result) => result.isFulfilled)
+      .map((result) => result.value);
+
+    return resolvedSeries;
+  }
+
+  public async getBaseMovies(filters: Record<string, string>, limit: number) {
+    const movies = [];
+
+    let page = 0;
+    do {
+      const searchParams = new URLSearchParams({
+        ...filters,
+        page: JSON.stringify(page++),
+      });
+      const response = await this._get<types.TVDB.Movies.Short.Root>(
+        "movies/filter",
+        searchParams
+      );
+      movies.push(...response.data);
+      if (response.links.next === null) break; // No more pages
+    } while (movies.length < limit);
+
+    return movies;
   }
 
   private _get = throttle(this._getInit);
