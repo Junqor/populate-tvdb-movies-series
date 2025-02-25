@@ -7,14 +7,18 @@ import { conn } from "./db/db.js";
 import { processMovies, upsert } from "./lib/utils.js";
 
 async function main() {
-  const movies: types.TVDB.Movies.Extended.Data[] = JSON.parse(
-    fs.readFileSync(`${config.outDir}/movies.json`, "utf8")
-  );
+  try {
+    const movies: types.TVDB.Movies.Extended.Data[] = JSON.parse(
+      fs.readFileSync(`${config.outDir}/movies.json`, "utf8")
+    );
 
-  // Preprocess data to prepare for upsert
-  const entries = processMovies(movies);
-  await upsert({ category: "movie", entries: entries });
-  await conn.end();
+    // Preprocess data to prepare for upsert
+    const entries = processMovies(movies);
+    await upsert({ category: "movie", entries: entries });
+  } finally {
+    console.log("Closing connection");
+    await conn.end();
+  }
 }
 
 await main();

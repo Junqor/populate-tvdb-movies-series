@@ -205,20 +205,12 @@ export const upsert = async ({
     }
 
     try {
-      const [row] = await db
-        .insert(media)
-        .values({
-          category,
-          title,
-          description,
-          releaseDate,
-          ageRating,
-          thumbnailUrl,
-          rating,
-          runtime,
-        })
-        .onDuplicateKeyUpdate({
-          set: {
+      await db.transaction(async (tx) => {
+        // Upsert media
+        const [row] = await tx
+          .insert(media)
+          .values({
+            category,
             title,
             description,
             releaseDate,
@@ -226,38 +218,53 @@ export const upsert = async ({
             thumbnailUrl,
             rating,
             runtime,
-          },
-        })
-        .$returningId();
+          })
+          .onDuplicateKeyUpdate({
+            set: {
+              title,
+              description,
+              releaseDate,
+              ageRating,
+              thumbnailUrl,
+              rating,
+              runtime,
+            },
+          })
+          .$returningId();
 
-      if (row.id === 0) {
-        updatedCount++;
-      } else {
-        insertedCount++;
-      }
+        // Get the media id of the previously upserted row
+        const [{ id }] = await tx
+          .select({ id: media.id })
+          .from(media)
+          .where(
+            and(
+              and(eq(media.title, title), eq(media.category, category)),
+              releaseDate !== null
+                ? eq(media.releaseDate, releaseDate)
+                : isNull(media.releaseDate)
+            )
+          );
 
-      const [{ id }] = await db
-        .select({ id: media.id })
-        .from(media)
-        .where(
-          and(
-            and(eq(media.title, title), eq(media.category, category)),
-            releaseDate !== null
-              ? eq(media.releaseDate, releaseDate)
-              : isNull(media.releaseDate)
-          )
-        );
+        // Upsert Genres
+        const genresToInsert = genres.map((g) => ({ mediaId: id, genre: g }));
+        await tx
+          .insert(mediaGenre)
+          .values(genresToInsert)
+          .onDuplicateKeyUpdate({ set: { id: sql`id` } });
 
-      const genresToInsert = genres.map((g) => ({ mediaId: id, genre: g }));
-      await db
-        .insert(mediaGenre)
-        .values(genresToInsert)
-        .onDuplicateKeyUpdate({ set: { id: sql`id` } });
+        // Upsert remote ids
+        await tx
+          .insert(remoteId)
+          .values({ id, tvdbId, tmdbId })
+          .onDuplicateKeyUpdate({ set: { tvdbId, tmdbId } });
 
-      await db
-        .insert(remoteId)
-        .values({ id, tvdbId, tmdbId })
-        .onDuplicateKeyUpdate({ set: { tvdbId, tmdbId } });
+        // Update count
+        if (row.id === 0) {
+          updatedCount++;
+        } else {
+          insertedCount++;
+        }
+      });
     } catch (error) {
       console.log(`Error inserting: ${title}\n`, error);
       failedCount++;

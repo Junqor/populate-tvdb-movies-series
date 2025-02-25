@@ -1168,10 +1168,19 @@ export namespace TVDB {
       asc = "asc",
     }
 
-    export enum Status {
-      Continuing = "1",
-      Ended = "2",
-      Upcoming = "3",
+    export namespace Status {
+      export enum Shows {
+        Continuing = "1",
+        Ended = "2",
+        Upcoming = "3",
+      }
+      export enum Movies {
+        Announced = "1",
+        PreProduction = "2",
+        InProduction = "3",
+        Completed = "4",
+        Released = "5",
+      }
     }
 
     // export enum Year {

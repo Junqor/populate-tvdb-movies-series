@@ -7,7 +7,7 @@ import { createDir } from "./lib/utils.js";
 
 dotenv.config();
 
-const LIMIT = 500;
+const LIMIT = 10000;
 
 async function main() {
   if (!process.env.TVDB_API_KEY) {
@@ -17,10 +17,14 @@ async function main() {
 
   // Customize as needed
   const filters = {
+    //company:
     sort: types.TVDB.Params.Sort.score,
     sortType: types.TVDB.Params.SortType.desc,
-    genre: types.TVDB.Params.Genres.Anime,
-    country: types.TVDB.Params.Country.Japan,
+    //genre:
+    //county:
+    language: types.TVDB.Params.Language.English,
+    status: types.TVDB.Params.Status.Movies.Released,
+    //year:
   };
 
   const movies = await tvdb.getMovies(filters, LIMIT);
