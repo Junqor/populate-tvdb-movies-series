@@ -3,10 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "get-series": "tsx src/getSeries.ts",
-    "upsert-series": "tsx src/upsertSeries.ts",
-    "get-movies": "tsx src/getMovies.ts",
-    "upsert-movies": "tsx src/upsertMovies.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
