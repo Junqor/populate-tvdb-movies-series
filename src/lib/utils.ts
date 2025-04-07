@@ -4,6 +4,32 @@ import { db } from "../db/db.js";
 import { media, mediaGenre, remoteId } from "../db/schema.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 
+export const getTvdbToken = async (apikey: string) => {
+  try {
+    const response = await fetch("https://api4.thetvdb.com/v4/login", {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        apikey: apikey,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    return result.data.token;
+  } catch (error) {
+    console.error("Failed to fetch TVDB token:", error);
+    throw error;
+  }
+};
+
 export function createDir(path: string) {
   if (!fs.existsSync(path)) {
     fs.mkdirSync(path);
@@ -29,7 +55,7 @@ const getSeriesData = (series: types.TVDB.Series.Extended.Data) => {
 
   // Look for english translation
   let title = null;
-  const nameTranslations = series.translations.nameTranslations;
+  const nameTranslations = series.translations?.nameTranslations;
   if (nameTranslations) {
     const nameTranslation = nameTranslations.find(
       (t) => t.language === types.TVDB.Params.Language.English
@@ -46,7 +72,7 @@ const getSeriesData = (series: types.TVDB.Series.Extended.Data) => {
 
   // Look for english translation
   let description = null;
-  const overviewTranslations = series.translations.overviewTranslations;
+  const overviewTranslations = series.translations?.overviewTranslations;
   if (overviewTranslations) {
     const overviewTranslation = overviewTranslations.find(
       (t) => t.language === "eng"
@@ -228,6 +254,7 @@ export const upsert = async ({
               thumbnailUrl,
               rating,
               runtime,
+              updated_at: sql`CURRENT_TIMESTAMP()`,
             },
           })
           .$returningId();

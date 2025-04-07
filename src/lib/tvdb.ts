@@ -121,7 +121,7 @@ export class TVDB {
     return movies;
   }
 
-  private _get = throttle(this._getInit);
+  public _get = throttle(this._getInit);
 
   private async _getInit<T>(
     path: string,

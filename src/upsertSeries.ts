@@ -15,6 +15,7 @@ async function main() {
     const processedSeries = processSeries(series);
     await upsert({ category: "tv_show", entries: processedSeries });
   } finally {
+    console.log("Closing connection");
     await conn.end();
   }
 }

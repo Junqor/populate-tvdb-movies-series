@@ -3,7 +3,7 @@ import fs from "fs";
 import dotenv from "dotenv";
 import { config } from "./lib/config.js";
 import { TVDB } from "./lib/tvdb.js";
-import { createDir } from "./lib/utils.js";
+import { createDir, getTvdbToken } from "./lib/utils.js";
 
 dotenv.config();
 
@@ -13,7 +13,8 @@ async function main() {
   if (!process.env.TVDB_API_KEY) {
     throw new Error("Missing TVDB API key");
   }
-  const tvdb = new TVDB(process.env.TVDB_API_KEY);
+  const key = await getTvdbToken(process.env.TVDB_API_KEY); // get bearer token
+  const tvdb = new TVDB(key);
 
   // Customize as needed
   const filters = {
